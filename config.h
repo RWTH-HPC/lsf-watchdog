@@ -10,7 +10,7 @@
 struct config {
 	bool verbose;
 
-	char *checks_dir;
+	char *check_dir;
 
 	struct filter {
 		char *host;
