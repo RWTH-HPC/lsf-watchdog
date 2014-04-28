@@ -1,0 +1,13 @@
+lsf_watchdog is an application, which watches for all currently submitted
+jobs in LSF, determine all relevant information and passes it to check-
+scripts, which are stored in a directory.
+
+Each check-script can handle some checks, but it is recommended, to
+implement only one check per file. If any check exits with an non-zero
+exit-code, the check will be marked as failed.
+
+At the end, a list of all failed checks is printed out for the local user
+so he can look, whats up with this jobs.
+Array-Jobs will not be handled twice, If any check was checked before, it
+will be marked as checked and will no longer be checked for submission-
+checks, but instead checks for the running environment will be done.
