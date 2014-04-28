@@ -5,6 +5,7 @@
 
 #include <getopt.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <lsf/lsf.h>
 #include <lsf/lsbatch.h>
@@ -18,7 +19,20 @@
  * function to parse command-line options.
  */
 struct config config_parse_cmd (int argc, char **argv) {
-	struct config conf;
+	struct config conf = {
+		false,
+		"./checks",
+		{
+			NULL,
+			0,
+			NULL,
+			NULL,
+			NULL
+		},
+		false,
+		false,
+		false
+	};
 
 	// long options
 	static struct option long_options[] = {
@@ -69,6 +83,13 @@ struct config config_parse_cmd (int argc, char **argv) {
 			default:
 				exit(EXIT_FAILURE);
 		}
+	}
+
+	// if no user is set, set as all
+	if (!conf.filter.user) {
+		int n = strlen(ALL_USERS);
+		conf.filter.user = new char[n];
+		strncpy(conf.filter.user, ALL_USERS, n);
 	}
 
 	return conf;

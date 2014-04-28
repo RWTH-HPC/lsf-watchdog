@@ -9,7 +9,7 @@ lsf_watchdog: lsf_watchdog.o config.o lsf_helper.o
 	${CXX} -o $@ ${LDFLAGS} $+
 
 # include header dependencys
-include *.d
+-include *.d
 
 # compile source
 %.o: %.c
