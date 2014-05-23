@@ -3,14 +3,16 @@
  * (C) 2014 Alexander Haase <alexander.haase@rwth-aachen.de>
  */
 
+#ifndef lsf_watchdog_config_h
+#define lsf_watchdog_config_h
+
 #include <lsf/lsf.h>
 
-
 // struct for configuration
-struct config {
+typedef struct lsf_watchdog_config_ {
 	bool verbose;
 
-	char *check_dir;
+	const char *check_dir;
 
 	struct filter {
 		char *host;
@@ -23,9 +25,11 @@ struct config {
 	bool print_job_conf;
 	bool print_job_script;
 	bool wait_after_match_for_enter;
-};
-
+} lsf_watchdog_config_t;
 
 
 // function to parse cmd-options
-struct config config_parse_cmd (int argc, char **argv);
+lsf_watchdog_config_t config_parse_cmd (int argc, char **argv);
+
+
+#endif

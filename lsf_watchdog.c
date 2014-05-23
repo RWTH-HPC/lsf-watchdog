@@ -14,7 +14,7 @@
 
 int main (int argc, char **argv) {
 	// parse command line arguments
-	struct config conf = config_parse_cmd(argc, argv);
+	lsf_watchdog_config_t conf = config_parse_cmd(argc, argv);
 
 	// search for all checks
 	struct script_list *check_scripts = search_check_scripts(conf.check_dir);
@@ -39,7 +39,7 @@ int main (int argc, char **argv) {
 
 	// search for all jobs
 	if (lsb_openjobinfo(conf.filter.job_id, conf.filter.job_name, conf.filter.user, conf.filter.queue, conf.filter.host, CUR_JOB) < 0) {
-		fprintf(stderr, "No jobs found. Search pattern: jobid=%s, jobname=%s, opt_user=%s, queue=%s, host=\"%s\"\n", conf.filter.job_id, conf.filter.job_name, conf.filter.user, conf.filter.queue, conf.filter.host);
+		fprintf(stderr, "No jobs found. Search pattern: jobid=%s, jobname=%s, opt_user=%s, queue=%s, host=\"%s\"\n", lsb_jobid2str(conf.filter.job_id), conf.filter.job_name, conf.filter.user, conf.filter.queue, conf.filter.host);
 		exit(EXIT_FAILURE);
 	}
 
@@ -47,8 +47,16 @@ int main (int argc, char **argv) {
 	int more;
 	struct jobInfoEnt *job;
 	while ((job = lsb_readjobinfo(&more))) {
-		if (job->status != JOB_STAT_RUN) continue;
-		printf("%s\n", lsb_jobid2str(job->jobId));
+		// if (job->status != JOB_STAT_RUN) continue;
+		// printf("%s\n", lsb_jobid2str(job->jobId));
+
+		struct script_list *check = check_scripts;
+		while (check) {
+			if (system(check->filename)) {
+				printf("%s:\t%s failed\n", lsb_jobid2str(conf.filter.job_id), check->filename);
+			}
+			check = check->next;
+		}
 	}
 
 	// close connection to mbatchd

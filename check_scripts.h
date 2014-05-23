@@ -3,6 +3,9 @@
  * (C) 2014 Alexander Haase <alexander.haase@rwth-aachen.de>
  */
 
+#ifndef lsf_watchdog_check_scripts_h
+#define lsf_watchdog_check_scripts_h
+
 
 // struct for list of executables for checks
 struct script_list {
@@ -18,3 +21,6 @@ struct script_list * script_list_merge (struct script_list *a, struct script_lis
 
 // function to search recusive for all executables in a givven directory
 struct script_list * search_check_scripts (const char *dir);
+
+
+#endif

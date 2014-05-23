@@ -18,15 +18,15 @@
  *
  * function to parse command-line options.
  */
-struct config config_parse_cmd (int argc, char **argv) {
-	struct config conf = {
+lsf_watchdog_config_t config_parse_cmd (int argc, char **argv) {
+	lsf_watchdog_config_t conf = {
 		false,
 		"./checks",
 		{
 			NULL,
 			0,
 			NULL,
-			NULL,
+			ALL_USERS,
 			NULL
 		},
 		false,
@@ -83,13 +83,6 @@ struct config config_parse_cmd (int argc, char **argv) {
 			default:
 				exit(EXIT_FAILURE);
 		}
-	}
-
-	// if no user is set, set as all
-	if (!conf.filter.user) {
-		int n = strlen(ALL_USERS);
-		conf.filter.user = new char[n];
-		strncpy(conf.filter.user, ALL_USERS, n);
 	}
 
 	return conf;
