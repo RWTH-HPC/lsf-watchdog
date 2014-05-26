@@ -30,12 +30,12 @@ void script_list_push (script_list_t **list, const char *filename) {
 }
 
 
-/* search_check_script
+/* check_scripts_add_file
  *
  * Function to add a executeable to list.
  * Executeable will be prepended to list.
  */
-bool search_check_script (const char *path, script_list_t **list) {
+bool check_scripts_add_file (const char *path, script_list_t **list) {
 	// get information about filename
 	struct stat st;
 	if (lstat(path, &st) >= 0) {
@@ -54,12 +54,12 @@ bool search_check_script (const char *path, script_list_t **list) {
 }
 
 
-/* search_check_script_dir
+/* check_scripts_add_dir
  *
  * Function to search for all executeables recursive in a given directory.
  * Found checks will be prepended to list.
  */
-bool search_check_script_dir (const char *path, script_list_t **list) {
+bool check_scripts_add_dir (const char *path, script_list_t **list) {
 	if (verbose)
 		printf("searching for check-scripts in '%s'\n", path);
 
@@ -82,7 +82,7 @@ bool search_check_script_dir (const char *path, script_list_t **list) {
 
 			// go recursive into directorys
 			if (S_ISDIR(st.st_mode))
-				search_check_script_dir(filename, list);
+				check_scripts_add_dir(filename, list);
 
 			// add executables to our list
 			else if ((st.st_mode & S_IEXEC) != 0) {

@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <getopt.h>
 #include <lsf/lsbatch.h>
 #include <lsf/lsf.h>
@@ -14,8 +15,15 @@
 #include "check_scripts.h"
 
 
+// colors for check output
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_YELLOW  "\x1b[33m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
 // verbose flag will be only declared here
 bool verbose;
+
 
 int main (int argc, char **argv) {
 	/*
@@ -32,6 +40,7 @@ int main (int argc, char **argv) {
 		(char*) ALL_USERS,
 		NULL
 	};
+	bool check_scripts_set = false;
 
 	// long options
 	static struct option long_options[] = {
@@ -71,17 +80,19 @@ int main (int argc, char **argv) {
 
 			// configuration
 			case 'c':
-				if (!search_check_script(optarg, &check_scripts)) {
+				if (!check_scripts_add_file(optarg, &check_scripts)) {
 					fprintf(stderr, "error while looking adding check-script '%s'!\n", optarg);
 					exit(EXIT_FAILURE);
 				}
+				check_scripts_set = true;
 				break;
 
 			case 'd':
-				if (!search_check_script_dir(optarg, &check_scripts)) {
+				if (!check_scripts_add_dir(optarg, &check_scripts)) {
 					fprintf(stderr, "error while looking for check-scripts in '%s'!\n", optarg);
 					exit(EXIT_FAILURE);
 				}
+				check_scripts_set = true;
 				break;
 
 			// exit if unknown flag (getopt already printed an error message)
@@ -91,13 +102,26 @@ int main (int argc, char **argv) {
 		}
 	}
 
-	/*
-	 * search for all checks
-	 */
+	// search for check-scripts in default directory, if no other dir set via cmd
+	if (!check_scripts_set) {
+		if (!check_scripts_add_dir("./checks", &check_scripts)) {
+			fprintf(stderr, "error while looking for check-scripts in '%s'!\n", optarg);
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	// print warning, if no checks were found
 	if (!check_scripts) {
 		fprintf(stderr, "no check-scripts found!\n");
 		exit(EXIT_FAILURE);
 	}
+
+
+
+	/*
+	 * search for all jobs at mbatchd, that match our filter and check this
+	 * jobs with our check-scripts
+	 */
 
 	// init connection to mbatchd
 	lsb_init(argv[0]);
@@ -111,12 +135,40 @@ int main (int argc, char **argv) {
 	// check jobs
 	int more;
 	struct jobInfoEnt *job;
+	static const char padder[] = "................................................";
 	while ((job = lsb_readjobinfo(&more))) {
+		if (verbose)
+			printf("checking %s:\n", lsb_jobid2str(job->jobId));
+	
+		/*
+		 * set environment for checks
+		 */
+		setenv("LSF_WATCHDOG_JOBID", lsb_jobid2str(job->jobId), true);
+
+		/*
+		 * run all check-scripts for this job
+		 */
 		script_list_t *check = check_scripts;
 		while (check) {
-			if (system(check->filename)) {
-				printf("%s:\t%s failed\n", lsb_jobid2str(job_filter.job_id), check->filename);
+			if (verbose)
+				printf("\t%s %*.s ", check->filename, (int) (sizeof(padder) - strlen(check->filename) - 1), padder);
+
+			int ret = system(check->filename);
+			switch (WEXITSTATUS(ret)) {
+				case 0:
+					if (verbose) printf(ANSI_COLOR_GREEN "passed" ANSI_COLOR_RESET "\n");
+					break;
+				
+				case 1:
+					if (verbose) printf(ANSI_COLOR_RED "failed" ANSI_COLOR_RESET "\n");
+					else printf("%s:\t%s " ANSI_COLOR_RED "failed" ANSI_COLOR_RESET "\n", lsb_jobid2str(job->jobId), check->filename);
+					break;
+
+				case 255:
+					if (verbose) printf(ANSI_COLOR_YELLOW "skippeed" ANSI_COLOR_RESET "\n");
+					break;
 			}
+
 			check = check->next;
 		}
 	}

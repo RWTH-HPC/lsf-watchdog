@@ -18,10 +18,10 @@ typedef struct script_list {
 void script_list_push (script_list_t **list, const char *filename);
 
 // function to add a single binary to list
-bool search_check_script (const char *path, script_list_t **list);
+bool check_scripts_add_file (const char *path, script_list_t **list);
 
 // function to search recusive for all executables in a givven directory
-bool search_check_script_dir (const char *path, script_list_t **list);
+bool check_scripts_add_dir (const char *path, script_list_t **list);
 
 
 #endif
