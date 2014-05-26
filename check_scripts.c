@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 
 #include "check_scripts.h"
+#include "config.h"
 
 
 /* script_list_push
@@ -17,70 +18,80 @@
  * function to add a new filename to script_list
  * returns a pointer to the beginning of the whole list
  */
-struct script_list * script_list_push (struct script_list *list, char *filename) {
-	// ignore empty strings
-	if (!filename) return list;
+void script_list_push (script_list_t **list, const char *filename) {
+	// ignore empty filename
+	if (!filename) return;
 
 	// add a new element in front of the list
-	struct script_list *temp = new script_list;
+	script_list_t *temp = new script_list_t;
 	temp->filename = filename;
-	temp->next = list;
-
-	return temp;
+	temp->next = *list;
+	*list = temp;
 }
 
 
-/* script_list_merge
+/* search_check_script
  *
- * function to merge two script_lists
- * returns a pointer to the beginning of the whole list
+ * Function to add a executeable to list.
+ * Executeable will be prepended to list.
  */
-struct script_list * script_list_merge (struct script_list *a, struct script_list *b) {
-	// do nothing if a or b is empty
-	if (!a) return b;
-	if (!b) return a;
+bool search_check_script (const char *path, script_list_t **list) {
+	// get information about filename
+	struct stat st;
+	if (lstat(path, &st) >= 0) {
+		if (!S_ISDIR(st.st_mode) && ((st.st_mode & S_IEXEC) != 0)) {
+			if (verbose)
+				printf("added check-script: %s\n", path);
 
-	// go to end of a and concat b
-	struct script_list *iter = a;
-	while ((iter = iter->next));
-	iter->next = b;
+			// push file to list
+			script_list_push(list, path);
 
-	return a;
+			return true;
+		}
+	}
+
+	return false;
 }
 
 
-/* search_check_scripts
+/* search_check_script_dir
  *
- * function to search for all executeables in a givven directory
- * returns a list of all found executeables
+ * Function to search for all executeables recursive in a given directory.
+ * Found checks will be prepended to list.
  */
-struct script_list * search_check_scripts (const char *dir) {
+bool search_check_script_dir (const char *path, script_list_t **list) {
+	if (verbose)
+		printf("searching for check-scripts in '%s'\n", path);
+
 	struct dirent **files;
 	int n;
-	if ((n = scandir(dir, &files, 0, 0)) < 0)
-		return NULL;
+	if ((n = scandir(path, &files, 0, alphasort)) < 0)
+		return false;
 
-	struct script_list *temp = NULL;
 	while (n--) {
 		// ignore hidden files
 		if (files[n]->d_name[0] != '.') {
 			// prepare filename
-			int l = strlen(dir) + strlen(files[n]->d_name) + 2;
-			char *filename = new char[l];
-			sprintf(filename, "%s/%s", dir, files[n]->d_name);
+			char *filename = new char[strlen(path) + strlen(files[n]->d_name) + 2];
+			sprintf(filename, "%s/%s", path, files[n]->d_name);
 
 			// get information about filename
 			struct stat st;
 			if (lstat(filename, &st) < 0)
-				return NULL;
+				return false;
 
 			// go recursive into directorys
 			if (S_ISDIR(st.st_mode))
-				temp = script_list_merge(search_check_scripts(filename), temp);
+				search_check_script_dir(filename, list);
 
 			// add executables to our list
-			else if ((st.st_mode & S_IEXEC) != 0)
-				temp = script_list_push(temp, filename);
+			else if ((st.st_mode & S_IEXEC) != 0) {
+				if (verbose)
+					printf("added check-script: %s\n", filename);
+
+				// push file to list
+				script_list_push(list, filename);
+			}
 		}
 
 		// free memory
@@ -90,5 +101,5 @@ struct script_list * search_check_scripts (const char *dir) {
 	// free memory
 	free(files);
 
-	return temp;
+	return true;
 }

@@ -6,7 +6,6 @@
 #ifndef lsf_watchdog_helper_h
 #define lsf_watchdog_helper_h
 
-
 #include <lsf/lsf.h>
 
 

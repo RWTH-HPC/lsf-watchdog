@@ -8,28 +8,18 @@
 
 #include <lsf/lsf.h>
 
-// struct for configuration
-typedef struct lsf_watchdog_config_ {
-	bool verbose;
 
-	const char *check_dir;
+// flag for verbose output
+extern bool verbose;
 
-	struct filter {
-		char *host;
-		LS_LONG_INT job_id;
-		char *job_name; 
-		char *user;
-		char *queue;
-	} filter;
-
-	bool print_job_conf;
-	bool print_job_script;
-	bool wait_after_match_for_enter;
-} lsf_watchdog_config_t;
-
-
-// function to parse cmd-options
-lsf_watchdog_config_t config_parse_cmd (int argc, char **argv);
+// search filter for lsf_openjobinfo
+typedef struct lsf_filter_ {
+	char *host;
+	LS_LONG_INT job_id;
+	char *job_name;
+	char *user;
+	char *queue;
+} lsf_filter_t;
 
 
 #endif

@@ -4,8 +4,6 @@
  */
 
 #include <stdlib.h>
-
-#include <lsf/lsf.h>
 #include <lsf/lsbatch.h>
 
 #include "lsf_helper.h"

@@ -8,19 +8,20 @@
 
 
 // struct for list of executables for checks
-struct script_list {
-	char *filename;
+typedef struct script_list {
+	const char *filename;
 	struct script_list *next;
-};
+} script_list_t;
+
 
 // function to append a new string to list
-struct script_list * script_list_push (struct script_list *list, char *filename);
+void script_list_push (script_list_t **list, const char *filename);
 
-// function to merge two lists
-struct script_list * script_list_merge (struct script_list *a, struct script_list *b);
+// function to add a single binary to list
+bool search_check_script (const char *path, script_list_t **list);
 
 // function to search recusive for all executables in a givven directory
-struct script_list * search_check_scripts (const char *dir);
+bool search_check_script_dir (const char *path, script_list_t **list);
 
 
 #endif
