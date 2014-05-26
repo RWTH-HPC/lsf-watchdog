@@ -173,9 +173,6 @@ int main (int argc, char **argv) {
 		sprintf(buffer, "%d", job->submit.maxNumProcessors);
 		setenv("LSF_WATCHDOG_PROCESSORS_MAX", buffer, true);
 
-		sprintf(buffer, "%d", job->submit.maxNumProcessors);
-		setenv("LSF_WATCHDOG_PROCESSORS_MAX", buffer, true);
-
 		sprintf(buffer, "%d", job->submit.rLimits[RLIMIT_RSS]);
 		setenv("LSF_WATCHDOG_MEM_PER_SLOT", buffer, true);
 
