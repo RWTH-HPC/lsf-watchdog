@@ -60,8 +60,8 @@ int main (int argc, char **argv) {
 		{"verbose", no_argument, 0, 'v'},
 
 		// check files
-		{"checkdir", required_argument, 0, 'd'},
-		{"check", required_argument, 0, 'c'}
+		{"check", required_argument, 0, 'c'},
+		{"checkdir", required_argument, 0, 'd'}
 	};
 
 	int option_index = 0;
@@ -169,13 +169,13 @@ int main (int argc, char **argv) {
 
 		sprintf(buffer, "%d", job->submit.numProcessors);
 		setenv("LSF_WATCHDOG_PROCESSORS_MIN", buffer, true);
-		
+
 		sprintf(buffer, "%d", job->submit.maxNumProcessors);
 		setenv("LSF_WATCHDOG_PROCESSORS_MAX", buffer, true);
-		
+
 		sprintf(buffer, "%d", job->submit.maxNumProcessors);
 		setenv("LSF_WATCHDOG_PROCESSORS_MAX", buffer, true);
-	
+
 		sprintf(buffer, "%d", job->submit.rLimits[RLIMIT_RSS]);
 		setenv("LSF_WATCHDOG_MEM_PER_SLOT", buffer, true);
 
