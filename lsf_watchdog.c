@@ -14,12 +14,17 @@
 #include "lsf_helper.h"
 #include "check_scripts.h"
 
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/resource.h>
+
 
 // colors for check output
-#define ANSI_COLOR_RED     "\x1b[31m"
-#define ANSI_COLOR_GREEN   "\x1b[32m"
-#define ANSI_COLOR_YELLOW  "\x1b[33m"
-#define ANSI_COLOR_RESET   "\x1b[0m"
+#define ANSI_COLOR_RED		"\x1b[31m"
+#define ANSI_COLOR_GREEN	"\x1b[32m"
+#define ANSI_COLOR_YELLOW	"\x1b[33m"
+#define ANSI_COLOR_CYAN		"\x1b[36m"
+#define ANSI_COLOR_RESET	"\x1b[0m"
 
 // verbose flag will be only declared here
 bool verbose;
@@ -144,6 +149,36 @@ int main (int argc, char **argv) {
 		 * set environment for checks
 		 */
 		setenv("LSF_WATCHDOG_JOBID", lsb_jobid2str(job->jobId), true);
+		setenv("LSF_WATCHDOG_USER", job->user, true);
+
+		// Job status - only running & pending jobs will be checked!
+		switch (job->status) {
+			case JOB_STAT_PEND: setenv("LSF_WATCHDOG_STATUS", "PENDING", true); break;
+			case JOB_STAT_RUN: setenv("LSF_WATCHDOG_STATUS", "RUNNING", true); break;
+			
+			// PSUSP, SSUSP, USUSP will be ignored
+			default:
+				if (verbose)
+					printf("skipped: States was %d\n", job->status);
+					continue;
+		}
+
+		char buffer [40];
+		sprintf(buffer, "%d", (int) job->startTime);
+		setenv("LSF_WATCHDOG_START_TIME", buffer, true);
+
+		sprintf(buffer, "%d", job->submit.numProcessors);
+		setenv("LSF_WATCHDOG_PROCESSORS_MIN", buffer, true);
+		
+		sprintf(buffer, "%d", job->submit.maxNumProcessors);
+		setenv("LSF_WATCHDOG_PROCESSORS_MAX", buffer, true);
+		
+		sprintf(buffer, "%d", job->submit.maxNumProcessors);
+		setenv("LSF_WATCHDOG_PROCESSORS_MAX", buffer, true);
+	
+		sprintf(buffer, "%d", job->submit.rLimits[RLIMIT_RSS]);
+		setenv("LSF_WATCHDOG_MEM_PER_SLOT", buffer, true);
+
 
 		/*
 		 * run all check-scripts for this job
@@ -165,7 +200,11 @@ int main (int argc, char **argv) {
 					break;
 
 				case 255:
-					if (verbose) printf(ANSI_COLOR_YELLOW "skippeed" ANSI_COLOR_RESET "\n");
+					if (verbose) printf(ANSI_COLOR_YELLOW "skipped" ANSI_COLOR_RESET "\n");
+					break;
+					
+				default:
+					printf(ANSI_COLOR_CYAN "unknown" ANSI_COLOR_RESET " (%d)\n", WEXITSTATUS(ret));
 					break;
 			}
 

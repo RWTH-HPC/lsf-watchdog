@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# This check checks, if a user forgot to calculate, that the OS needs
+# too. E.g. he requested 2GB per Slot, but 2GB*12 Slots = 24 GB, so
+# there is no more memory for the OS. The Job would be scheduled on
+# a Host with more than 24 GB (mpi-l) or spaned over two host, what
+# is not necessary!
+
+if [ $LSF_WATCHDOG_MEM_PER_SLOT -ge 1850 ]; then
+	if [ $LSF_WATCHDOG_MEM_PER_SLOT -le 2048 ]; then
+		exit 1
+	fi
+fi
+
