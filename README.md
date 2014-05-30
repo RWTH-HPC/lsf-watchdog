@@ -61,4 +61,4 @@ You should use the following exit-codes:
 | ---------- | ------- |
 | 0 | Your check passed without any problems |
 | 1 | Your check failed |
-| 255 | Your check was skipped (e.g. only running jobs will be checked by this script and the actual jub-status is PENDING) |
+| 255 | Your check was skipped (e.g. only running jobs will be checked by your script and the actual job-status is PENDING) |
