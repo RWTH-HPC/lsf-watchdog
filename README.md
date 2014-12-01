@@ -48,7 +48,7 @@ You could use the following environment variables:
 | ------------- | ------------- |
 | LSF_WATCHDOG_JOBID | ID of JOB, including array-index, if it is an array-job |
 | LSF_WATCHDOG_USER | Owner of the job |
-| LSF_WATCHDOG_STATUS | Current job-status: {PENDING|RUNNING} |
+| LSF_WATCHDOG_STATUS | Current job-status: {PENDING\|RUNNING} |
 | LSF_WATCHDOG_START_TIME | Unix-timestamp, when job started execution |
 | LSF_WATCHDOG_PROCESSORS_MIN | Minimum number of requested processors |
 | LSF_WATCHDOG_PROCESSORS_MAX | Maximum number of requested processors |
